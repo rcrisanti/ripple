@@ -13,7 +13,7 @@ use diesel::r2d2::ConnectionManager;
 use dotenv::dotenv;
 use tera::Tera;
 
-use services::{index, login, logout, register};
+use services::{index, login, logout, register, user_profile};
 
 type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -62,7 +62,10 @@ async fn main() -> std::io::Result<()> {
                     .route(web::get().to(register::register))
                     .route(web::post().to(register::process_registration)),
             )
-            .service(web::resource("/logout").route(web::get().to(logout::process_logout)))
+            .route("/logout", web::get().to(logout::process_logout))
+            .service(
+                web::resource("/user/{username}").route(web::get().to(user_profile::user_profile)),
+            )
     })
     .bind("127.0.0.1:8001")?
     .run()

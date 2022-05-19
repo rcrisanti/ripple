@@ -8,9 +8,16 @@ use actix_web::{web, HttpResponse};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
-pub async fn register(tera: web::Data<Tera>) -> Result<HttpResponse, RippleError> {
+pub async fn register(tera: web::Data<Tera>, id: Identity) -> Result<HttpResponse, RippleError> {
     let mut data = Context::new();
     data.insert("title", "register");
+    data.insert(
+        "logged_in",
+        match id.identity() {
+            Some(_) => "true",
+            None => "false",
+        },
+    );
 
     let rendered = tera.render("register.html", &data)?;
     Ok(HttpResponse::Ok().body(rendered))
@@ -30,8 +37,8 @@ pub async fn process_registration(
         .values(&new_user)
         .execute(&connection)?;
 
-    log::info!("process registration for {}", new_user.email);
+    log::info!("process registration for {}", new_user.username);
 
-    id.remember(new_user.email.to_string());
+    id.remember(new_user.username.to_string());
     Ok(HttpResponse::Ok().body("processed registration"))
 }

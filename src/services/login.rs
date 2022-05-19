@@ -29,11 +29,11 @@ pub async fn process_login(
     id: Identity,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, RippleError> {
-    use schema::users::dsl::{email, last_login, users};
+    use schema::users::dsl::{last_login, username, users};
 
     let connection = pool.get()?;
     let user = users
-        .filter(email.eq(&data.email))
+        .filter(username.eq(&data.username))
         .first::<User>(&connection)?;
 
     dotenv().ok();
@@ -48,14 +48,14 @@ pub async fn process_login(
     if valid {
         // update last_login field
         diesel::update(users)
-            .filter(email.eq(&user.email))
+            .filter(username.eq(&user.username))
             .set(last_login.eq(chrono::Local::now().naive_utc()))
             .execute(&connection)?;
 
-        let session_token = String::from(user.email);
+        let session_token = String::from(user.username);
         id.remember(session_token);
 
-        Ok(HttpResponse::Ok().body(format!("Logged in: {}", data.email)))
+        Ok(HttpResponse::Ok().body(format!("Logged in: {}", data.username)))
     } else {
         Ok(HttpResponse::Ok().body("Password incorrect"))
     }

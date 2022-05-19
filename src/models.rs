@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Identifiable, Queryable, Serialize)]
 pub struct User {
     pub id: i32,
+    pub username: String,
     pub email: String,
     pub password: String,
     pub created_at: chrono::NaiveDateTime,
@@ -17,6 +18,7 @@ pub struct User {
 
 #[derive(Debug, Deserialize)]
 pub struct UserForm {
+    pub username: String,
     pub email: String,
     pub password: String,
     pub confirm_password: String,
@@ -25,6 +27,7 @@ pub struct UserForm {
 #[derive(Debug, Deserialize, Insertable)]
 #[table_name = "users"]
 pub struct NewUser {
+    pub username: String,
     pub email: String,
     password: String,
     created_at: chrono::NaiveDateTime,
@@ -50,6 +53,7 @@ impl NewUser {
             .unwrap();
 
         Ok(NewUser {
+            username: user_form.username,
             email: user_form.email,
             password: hash,
             created_at: chrono::Local::now().naive_utc(),
@@ -60,6 +64,6 @@ impl NewUser {
 
 #[derive(Debug, Deserialize)]
 pub struct LoginUser {
-    pub email: String,
+    pub username: String,
     pub password: String,
 }
