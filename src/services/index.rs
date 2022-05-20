@@ -7,13 +7,13 @@ use crate::errors::RippleError;
 pub async fn index(tera: web::Data<Tera>, id: Identity) -> Result<HttpResponse, RippleError> {
     let mut data = Context::new();
     data.insert("title", "home");
-    data.insert(
-        "logged_in",
-        match id.identity() {
-            Some(_) => "true",
-            None => "false",
-        },
-    );
+
+    if let Some(my_username) = id.identity() {
+        data.insert("logged_in", "true");
+        data.insert("my_username", &my_username);
+    } else {
+        data.insert("logged_in", "false");
+    }
 
     let rendered = tera.render("index.html", &data)?;
     Ok(HttpResponse::Ok().body(rendered))

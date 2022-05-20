@@ -14,10 +14,10 @@
     </head>
     <body>
         <header>
-            <h1>ripple</h1>
+            <h1 onclick="window.location.href='/'">ripple</h1>
             <div style="float:right;">
                 {% if logged_in == "true" %}
-                    <button onclick="window.location.href='/me'">profile</button>
+                    <button onclick="window.location.href='/user/{{my_username}}'">profile</button>
                     <button onclick="window.location.href='/logout'">logout</button>
                 {% else %}
                     <button onclick="window.location.href='/login'">login</button>
