@@ -4,19 +4,40 @@
 <form action="" method="post">
     <div>
         <label for="username">username:</label>
-        <input name="username" type="text">
+        <input 
+            name="username" type="text" required minlength="4" maxlength="18" pattern="^[a-zA-Z0-9]{4,18}$" placeholder="username"
+            title="username should be between 4-18 characters and contain only letters and numbers"
+        >
+        {% if username_error %}
+            <em style="background-color:red; color:white">{{username_error}}</em>
+        {% endif %}
     </div>
     <div>
         <label for="email">email:</label>
-        <input name="email" type="email">
+        <input name="email" type="email" required placeholder="email">
+        {% if email_error %}
+            <em style="background-color:red; color:white">{{email_error}}</em>
+        {% endif %}
     </div>
     <div>
         <label for="password">password:</label>
-        <input name="password" type="password">
+        <input 
+            name="password" type="password" required minlength="8" maxlength="24" pattern="[a-zA-Z\d@#$%^&-+=()!? ]{8,24}$" placeholder="password"
+            title="password should be between 8-24 characters and contain only letters, numbers, and special characters '@#$%^&-+=()!? '"
+        >
+        {% if password_error %}
+            <em style="background-color:red; color:white">{{password_error}}</em>
+        {% endif %}
     </div>
     <div>
         <label for="confirm_password">confirm password:</label>
-        <input name="confirm_password" type="password">
+        <input 
+            name="confirm_password" type="password" required minlength="8" maxlength="24" pattern="[a-zA-Z\d@#$%^&-+=()!? ]{8,24}$" placeholder="password"
+            title="password should be between 8-24 characters and contain only letters, numbers, and special characters '@#$%^&-+=()!? '"
+        >
+        {% if confirm_password_error %}
+            <em style="background-color:red; color:white">{{confirm_password_error}}</em>
+        {% endif %}
     </div>
     <input type="submit" value="register">
 </form>

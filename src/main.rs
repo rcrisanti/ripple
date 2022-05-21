@@ -5,6 +5,8 @@ mod services;
 
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate lazy_static;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
