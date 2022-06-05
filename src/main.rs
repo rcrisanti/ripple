@@ -1,7 +1,8 @@
 mod errors;
 mod models;
-pub mod schema;
+mod schema;
 mod services;
+mod spotify;
 
 #[macro_use]
 extern crate diesel;
@@ -15,7 +16,7 @@ use diesel::r2d2::ConnectionManager;
 use dotenv::dotenv;
 use tera::Tera;
 
-use services::{index, login, logout, register, user_profile};
+use services::{account, home, index, login, logout, register, spotify_connect, user_profile};
 
 type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -51,8 +52,8 @@ async fn main() -> std::io::Result<()> {
                     .name("auth-cookie")
                     .secure(false),
             ))
-            .data(tera)
-            .data(pool.clone())
+            .app_data(web::Data::new(tera))
+            .app_data(web::Data::new(pool.clone()))
             .route("/", web::get().to(index::index))
             .service(
                 web::resource("/login")
@@ -67,6 +68,12 @@ async fn main() -> std::io::Result<()> {
             .route("/logout", web::get().to(logout::process_logout))
             .service(
                 web::resource("/user/{username}").route(web::get().to(user_profile::user_profile)),
+            )
+            .route("/home", web::get().to(home::home))
+            .route("/account", web::get().to(account::account))
+            .route(
+                "/spotify-connect",
+                web::get().to(spotify_connect::spotify_connect),
             )
     })
     .bind("127.0.0.1:8000")?

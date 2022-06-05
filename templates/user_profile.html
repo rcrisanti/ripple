@@ -1,26 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>{{requested_username}}</h2>
+<h2>{{username}}</h2>
 
-{% if is_my_account %}
-    <div>
-        <h3>email</h3>
-        <p>{{email}}</p>
-    </div>
-    
-    <div>
-        <h3>password</h3>
-        <button>change password</button>
-    </div>
-    
-    <div>
-        <h3>account info</h3>
-        <p>created at: {{created_at}}</p>
-        <p>last login: {{last_login}}</p>
-    </div>
-{% else %}
-    <p>This is someone else's account</p>
-{% endif %}
+<p>This is the public view of {{username}}'s account</p>
 
 {% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{my_username}}</h2>
+
+<div>
+    <h3>email</h3>
+    <p>{{email}}</p>
+</div>
+
+<div>
+    <h3>password</h3>
+    <button>change password</button>
+</div>
+
+<div>
+    <h3>Spotify</h3>
+    <button onclick="window.location.href='{{spotify_auth_url}}'">connect Spotify</button>
+</div>
+
+<div>
+    <h3>account info</h3>
+    <p>created at: {{created_at}}</p>
+    <p>last login: {{last_login}}</p>
+</div>
+
+{% endblock %}

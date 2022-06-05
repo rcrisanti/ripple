@@ -1,10 +1,14 @@
+use std::collections::HashSet;
+
 use super::errors::RippleError;
-use crate::schema::users;
+use crate::schema::{spotify_tokens, users};
 
 use argonautica::Hasher;
-use diesel::{Identifiable, Insertable, Queryable};
+use chrono::{DateTime, Duration, Local, NaiveDateTime, Utc};
+use diesel::{AsChangeset, Identifiable, Insertable, Queryable};
 use dotenv::dotenv;
 use regex::Regex;
+use rspotify::Token;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -19,8 +23,8 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password: String,
-    pub created_at: chrono::NaiveDateTime,
-    pub last_login: chrono::NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub last_login: NaiveDateTime,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -56,8 +60,8 @@ pub struct NewUser {
     pub username: String,
     pub email: String,
     password: String,
-    created_at: chrono::NaiveDateTime,
-    last_login: chrono::NaiveDateTime,
+    created_at: NaiveDateTime,
+    last_login: NaiveDateTime,
 }
 
 impl NewUser {
@@ -82,8 +86,8 @@ impl NewUser {
             username: user_form.username,
             email: user_form.email,
             password: hash,
-            created_at: chrono::Local::now().naive_utc(),
-            last_login: chrono::Local::now().naive_utc(),
+            created_at: Local::now().naive_utc(),
+            last_login: Local::now().naive_utc(),
         })
     }
 }
@@ -92,4 +96,57 @@ impl NewUser {
 pub struct LoginUser {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Debug, Deserialize, Insertable, AsChangeset)]
+#[table_name = "spotify_tokens"]
+pub struct NewSpotifyToken {
+    username: String,
+    access_token: String,
+    expires_in_seconds: i64,
+    expires_at: Option<NaiveDateTime>,
+    refresh_token: Option<String>,
+    scopes: Vec<String>,
+}
+
+impl NewSpotifyToken {
+    pub fn from_token(username: String, token: Token) -> Self {
+        NewSpotifyToken {
+            username,
+            access_token: token.access_token,
+            expires_in_seconds: token.expires_in.num_seconds(),
+            expires_at: match token.expires_at {
+                Some(expires_at) => Some(expires_at.naive_utc()),
+                None => None,
+            },
+            refresh_token: token.refresh_token,
+            scopes: Vec::from_iter(token.scopes.iter().map(|s| s.clone())),
+        }
+    }
+}
+
+#[derive(Debug, Identifiable, Queryable, Serialize)]
+pub struct SpotifyToken {
+    id: i32,
+    username: String,
+    access_token: String,
+    expires_in_seconds: i64,
+    expires_at: Option<NaiveDateTime>,
+    refresh_token: Option<String>,
+    scopes: Vec<String>,
+}
+
+impl From<SpotifyToken> for Token {
+    fn from(spotify_token: SpotifyToken) -> Self {
+        Token {
+            access_token: spotify_token.access_token.clone(),
+            expires_in: Duration::seconds(spotify_token.expires_in_seconds),
+            expires_at: match spotify_token.expires_at {
+                Some(datetime) => Some(DateTime::<Utc>::from_utc(datetime, Utc)),
+                None => None,
+            },
+            refresh_token: spotify_token.refresh_token.clone(),
+            scopes: HashSet::from_iter(spotify_token.scopes.iter().map(|s| s.clone())),
+        }
+    }
 }

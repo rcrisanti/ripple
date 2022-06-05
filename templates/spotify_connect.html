@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{username}}</h2>
+
+{% if connected_success %}
+    <p>Spotify was connected successfully</p>
+{% else %}
+    <p>There was an error connecting Spotify</p>
+{% endif %}
+
+{% endblock %}

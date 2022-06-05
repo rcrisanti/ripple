@@ -17,7 +17,8 @@
             <h1 onclick="window.location.href='/'">ripple</h1>
             <div style="float:right;">
                 {% if logged_in == "true" %}
-                    <button onclick="window.location.href='/user/{{my_username}}'">profile</button>
+                    <button onclick="window.location.href='/home'">home</button>
+                    <button onclick="window.location.href='/account'">account</button>
                     <button onclick="window.location.href='/logout'">logout</button>
                 {% else %}
                     <button onclick="window.location.href='/login'">login</button>

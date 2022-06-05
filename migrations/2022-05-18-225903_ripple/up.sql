@@ -6,3 +6,13 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL,
     last_login TIMESTAMP NOT NULL
 );
+
+CREATE TABLE spotify_tokens (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR NOT NULL UNIQUE,
+    access_token VARCHAR NOT NULL,
+    expires_in_seconds BIGINT NOT NULL,
+    expires_at TIMESTAMP,
+    refresh_token VARCHAR,
+    scopes TEXT[] NOT NULL
+);
