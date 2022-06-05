@@ -9,6 +9,7 @@ pub enum RippleError {
     DieselError,
     ArgonauticaError,
     TeraError,
+    SpotifyError,
 }
 
 impl Display for RippleError {
@@ -20,6 +21,7 @@ impl Display for RippleError {
             RippleError::DieselError => write!(f, "DieselError"),
             RippleError::ArgonauticaError => write!(f, "ArgonauticaError"),
             RippleError::TeraError => write!(f, "TeraError"),
+            RippleError::SpotifyError => write!(f, "SpotifyError"),
         }
     }
 }
@@ -37,6 +39,7 @@ impl ResponseError for RippleError {
                 HttpResponse::InternalServerError().json("ArgonauticaError")
             }
             RippleError::TeraError => HttpResponse::InternalServerError().json("TeraError"),
+            RippleError::SpotifyError => HttpResponse::InternalServerError().json("SpotifyError"),
         }
     }
 }
@@ -81,5 +84,12 @@ impl From<tera::Error> for RippleError {
     fn from(err: tera::Error) -> Self {
         log::error!("{:?}", err);
         RippleError::TeraError
+    }
+}
+
+impl From<rspotify::ClientError> for RippleError {
+    fn from(err: rspotify::ClientError) -> Self {
+        log::error!("{:?}", err);
+        RippleError::SpotifyError
     }
 }
