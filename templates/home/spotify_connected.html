@@ -1,0 +1,18 @@
+{% extends "home/base.html" %}
+
+{% block homecontent %}
+    <p>your Spotify account is connected</p>
+
+    {% if currently_playing %}
+        <div>
+            <h2>currently playing</h2>
+            <img srcset="{{img_srcset}}" style="width:60%; max-width:600px;">
+            <p>{{currently_playing_name}}</p>
+            <p>by {{currently_playing_artist}}</p>
+
+            <div>
+                <input type="range" min="0" max="{{song_seconds}}" value="{{song_progress}}" style="width:60%; max-width:600px;">
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

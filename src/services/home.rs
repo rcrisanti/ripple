@@ -22,15 +22,18 @@ pub async fn home(
         data.insert("logged_in", "true");
 
         let connection = pool.get()?;
-        let spotify_auth = spotify_preconnected(my_username, connection).await;
+        let spotify_auth = spotify_preconnected(my_username, connection).await?;
 
         if let Some(spotify) = spotify_auth {
             data.insert("connected_to_spotify", "true");
+
+            dbg!(&spotify);
 
             let context = spotify.current_user_playing_item().await?;
 
             match context {
                 Some(context) => {
+                    data.insert("currently_playing", "true");
                     let item = context.item.as_ref().unwrap();
                     match item {
                         PlayableItem::Track(track) => {
@@ -54,8 +57,9 @@ pub async fn home(
                                 })
                                 .collect::<Vec<String>>()
                                 .join(", ");
-                            log::debug!("images: {}", imgs);
                             data.insert("img_srcset", &imgs);
+                            data.insert("song_seconds", &track.duration.as_secs());
+                            data.insert("song_progress", &context.progress.unwrap().as_secs());
                             // data.insert(
                             //     "img_src",
                             //     &track.album.images.first().expect("no album images").url,
@@ -64,13 +68,16 @@ pub async fn home(
                         PlayableItem::Episode(episode) => todo!(),
                     };
                 }
-                None => todo!(),
+                None => {}
             };
+        } else {
+            let rendered = tera.render("home/spotify_disconnected.html", &data)?;
+            return Ok(HttpResponse::Ok().body(rendered));
         }
     } else {
         return Ok(HttpResponse::Ok().body("not logged in"));
     }
 
-    let rendered = tera.render("home.html", &data)?;
+    let rendered = tera.render("home/spotify_connected.html", &data)?;
     Ok(HttpResponse::Ok().body(rendered))
 }

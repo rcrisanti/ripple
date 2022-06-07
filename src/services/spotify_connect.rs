@@ -32,25 +32,28 @@ pub async fn spotify_connect(
         let mut spotify = spotify::init_spotify();
 
         if spotify.request_token(&connect_request.code).await.is_ok() {
-            use schema::spotify_tokens::dsl::{spotify_tokens, username};
+            // use schema::spotify_tokens::dsl::{spotify_tokens, username};
 
-            let token = spotify
-                .get_token()
-                .lock()
-                .await
-                .expect("could not obtain token")
-                .clone()
-                .expect("token is None");
-            let new_spotify_token = NewSpotifyToken::from_token(my_username, token);
+            // let token = spotify
+            //     .get_token()
+            //     .lock()
+            //     .await
+            //     .expect("could not obtain token")
+            //     .clone()
+            //     .expect("token is None");
+            // let new_spotify_token = NewSpotifyToken::from_token(my_username, token);
+
+            // let connection = pool.get()?;
+
+            // diesel::insert_into(spotify_tokens)
+            //     .values(&new_spotify_token)
+            //     .on_conflict(username)
+            //     .do_update()
+            //     .set(&new_spotify_token)
+            //     .execute(&connection)?;
 
             let connection = pool.get()?;
-
-            diesel::insert_into(spotify_tokens)
-                .values(&new_spotify_token)
-                .on_conflict(username)
-                .do_update()
-                .set(&new_spotify_token)
-                .execute(&connection)?;
+            spotify::save_token_to_db(&spotify, connection, my_username).await?;
 
             data.insert("connected_success", "true");
         } else {
