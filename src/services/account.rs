@@ -43,15 +43,20 @@ pub async fn account(
                 .format(DATETIME_FORMAT)
                 .to_string(),
         );
+
+        // setup spotify auth
+        match spotify::spotify_preconnected(my_username, connection).await? {
+            Some(_) => data.insert("spotify_connected", "true"),
+            None => {
+                let spotify = spotify::init_spotify();
+                let url = spotify.get_authorize_url(true).unwrap();
+
+                data.insert("spotify_auth_url", &url);
+            }
+        }
     } else {
         return Ok(HttpResponse::Ok().body("not logged in"));
     }
-
-    // setup spotify auth
-    let spotify = spotify::init_spotify();
-    let url = spotify.get_authorize_url(true).unwrap();
-
-    data.insert("spotify_auth_url", &url);
 
     let rendered = tera.render("account.html", &data)?;
     Ok(HttpResponse::Ok().body(rendered))

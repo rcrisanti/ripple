@@ -15,7 +15,13 @@
 
 <div>
     <h3>Spotify</h3>
-    <button onclick="window.location.href='{{spotify_auth_url}}'">connect Spotify</button>
+    {% if spotify_connected %}
+        <p>status: <i class="fa fa-check"></i></p>
+        <button onclick="window.location.href='https://www.spotify.com/account/apps/'">disconnect Spotify</button>
+    {% else %}
+        <p>status: <i class="fa fa-times"></i></p>
+        <button onclick="window.location.href='{{spotify_auth_url}}'">connect Spotify</button>
+    {% endif %}
 </div>
 
 <div>

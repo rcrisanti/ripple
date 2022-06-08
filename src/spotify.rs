@@ -63,17 +63,21 @@ async fn from_token_refresh(
     token: Token,
     connection: Connection,
     my_username: String,
-) -> Result<AuthCodeSpotify, RippleError> {
+) -> Result<Option<AuthCodeSpotify>, RippleError> {
     let (creds, oauth) = get_creds_oath();
     let spotify = AuthCodeSpotify::new(creds, oauth);
     *spotify.token.lock().await.unwrap() = Some(token);
-    spotify
-        .refresh_token()
-        .await
-        .expect("could not refresh user token");
-    log::debug!("refreshed spotify token");
-    save_token_to_db(&spotify, connection, my_username).await?;
-    Ok(spotify)
+    match spotify.refresh_token().await {
+        Ok(_) => {
+            log::debug!("refreshed spotify token");
+            save_token_to_db(&spotify, connection, my_username).await?;
+            Ok(Some(spotify))
+        }
+        Err(_) => {
+            log::warn!("could not refresh spotify token");
+            Ok(None)
+        }
+    }
 }
 
 pub async fn spotify_preconnected(
@@ -89,9 +93,10 @@ pub async fn spotify_preconnected(
     match spotify_token {
         Ok(token) => {
             log::debug!("retrieved spotify token from database");
-            Ok(Some(
-                from_token_refresh(token.into(), connection, username).await?,
-            ))
+            match from_token_refresh(token.into(), connection, username).await? {
+                Some(spotify) => Ok(Some(spotify)),
+                None => Ok(None),
+            }
         }
         _ => {
             log::debug!("no spotify token in database for user");
