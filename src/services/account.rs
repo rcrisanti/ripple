@@ -2,13 +2,14 @@ use crate::models::User;
 use crate::schema;
 use crate::{errors::RippleError, spotify, Pool};
 use actix_identity::Identity;
-use actix_web::{web, HttpResponse};
+use actix_web::{get, web, HttpResponse};
 use chrono::{DateTime, Local, Utc};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 
 const DATETIME_FORMAT: &str = "%a %h %d %Y %r %Z";
 
+#[get("/account")]
 pub async fn account(
     tera: web::Data<Tera>,
     pool: web::Data<Pool>,
@@ -23,6 +24,7 @@ pub async fn account(
         let user: User = users
             .filter(username.eq(&my_username))
             .get_result(&connection)?;
+        log::debug!("retrieved user from database");
 
         data.insert("logged_in", "true");
         data.insert("my_username", &my_username);

@@ -1,14 +1,13 @@
 use actix_identity::Identity;
-use actix_web::{web, HttpResponse};
-use diesel::prelude::*;
+use actix_web::{get, web, HttpResponse};
 use rspotify::clients::OAuthClient;
 use rspotify::model::PlayableItem;
 use tera::{Context, Tera};
 
 use crate::errors::RippleError;
-use crate::models::{SpotifyToken, User};
-use crate::{schema, spotify::spotify_preconnected, Pool};
+use crate::{spotify::spotify_preconnected, Pool};
 
+#[get("/home")]
 pub async fn home(
     tera: web::Data<Tera>,
     id: Identity,
@@ -25,9 +24,10 @@ pub async fn home(
         let spotify_auth = spotify_preconnected(my_username, connection).await?;
 
         if let Some(spotify) = spotify_auth {
+            log::debug!("connected to spotify");
             data.insert("connected_to_spotify", "true");
 
-            dbg!(&spotify);
+            dbg!(&spotify.device().await);
 
             let context = spotify.current_user_playing_item().await?;
 
@@ -37,7 +37,7 @@ pub async fn home(
                     let item = context.item.as_ref().unwrap();
                     match item {
                         PlayableItem::Track(track) => {
-                            dbg!(track);
+                            // dbg!(track);
                             data.insert("currently_playing_name", &track.name);
                             data.insert(
                                 "currently_playing_artist",
@@ -65,16 +65,18 @@ pub async fn home(
                             //     &track.album.images.first().expect("no album images").url,
                             // );
                         }
-                        PlayableItem::Episode(episode) => todo!(),
+                        PlayableItem::Episode(_episode) => todo!(),
                     };
                 }
                 None => {}
             };
         } else {
+            log::debug!("not connected to spotify");
             let rendered = tera.render("home/spotify_disconnected.html", &data)?;
             return Ok(HttpResponse::Ok().body(rendered));
         }
     } else {
+        log::debug!("not logged in");
         return Ok(HttpResponse::Ok().body("not logged in"));
     }
 

@@ -54,6 +54,8 @@ pub async fn save_token_to_db(
         .set(&new_spotify_token)
         .execute(&connection)?;
 
+    log::debug!("saved spotify token to database");
+
     return Ok(());
 }
 
@@ -69,6 +71,7 @@ async fn from_token_refresh(
         .refresh_token()
         .await
         .expect("could not refresh user token");
+    log::debug!("refreshed spotify token");
     save_token_to_db(&spotify, connection, my_username).await?;
     Ok(spotify)
 }
@@ -84,9 +87,15 @@ pub async fn spotify_preconnected(
         .get_result(&connection);
 
     match spotify_token {
-        Ok(token) => Ok(Some(
-            from_token_refresh(token.into(), connection, username).await?,
-        )),
-        _ => Ok(None),
+        Ok(token) => {
+            log::debug!("retrieved spotify token from database");
+            Ok(Some(
+                from_token_refresh(token.into(), connection, username).await?,
+            ))
+        }
+        _ => {
+            log::debug!("no spotify token in database for user");
+            Ok(None)
+        }
     }
 }

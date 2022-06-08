@@ -4,18 +4,22 @@ use crate::models::{NewUser, UserForm};
 use crate::schema;
 use crate::Pool;
 use actix_identity::Identity;
-use actix_web::{web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 use diesel::prelude::*;
 use tera::{Context, Tera};
 use validator::{Validate, ValidationErrors, ValidationErrorsKind};
 
+#[get("/register")]
 pub async fn register(tera: web::Data<Tera>, id: Identity) -> Result<HttpResponse, RippleError> {
     let mut data = Context::new();
     data.insert("title", "register");
+
     if let Some(my_username) = id.identity() {
+        log::debug!("logged in");
         data.insert("logged_in", "true");
         data.insert("my_username", &my_username);
     } else {
+        log::debug!("not logged in");
         data.insert("logged_in", "false");
     }
 
@@ -23,7 +27,7 @@ pub async fn register(tera: web::Data<Tera>, id: Identity) -> Result<HttpRespons
     Ok(HttpResponse::Ok().body(rendered))
 }
 
-pub async fn register_with_warnings(
+async fn register_with_warnings(
     tera: web::Data<Tera>,
     id: Identity,
     e: ValidationErrors,
@@ -31,9 +35,13 @@ pub async fn register_with_warnings(
     let mut data = Context::new();
     data.insert("title", "register");
     if let Some(my_username) = id.identity() {
+        log::debug!("logged in");
+
         data.insert("logged_in", "true");
         data.insert("my_username", &my_username);
     } else {
+        log::debug!("not logged in");
+
         data.insert("logged_in", "false");
     }
 
@@ -48,12 +56,15 @@ pub async fn register_with_warnings(
     Ok(HttpResponse::Ok().body(rendered))
 }
 
+#[post("/register")]
 pub async fn process_registration(
     tera: web::Data<Tera>,
     web::Form(user_form): web::Form<UserForm>,
     id: Identity,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, RippleError> {
+    log::debug!("posting registration user form");
+
     if let Err(e) = user_form.validate() {
         // return Ok(HttpResponse::Ok().body(format!("Registration error: {}", e)));
         // return Ok(HttpResponse::SeeOther()
@@ -75,5 +86,6 @@ pub async fn process_registration(
     log::info!("process registration for {}", new_user.username);
 
     id.remember(new_user.username.to_string());
+    log::debug!("remember session id");
     Ok(HttpResponse::Ok().body("processed registration"))
 }

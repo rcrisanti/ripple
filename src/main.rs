@@ -54,29 +54,18 @@ async fn main() -> std::io::Result<()> {
             ))
             .app_data(web::Data::new(tera))
             .app_data(web::Data::new(pool.clone()))
-            .route("/", web::get().to(index::index))
-            .service(
-                web::resource("/login")
-                    .route(web::get().to(login::login))
-                    .route(web::post().to(login::process_login)),
-            )
-            .service(
-                web::resource("/register")
-                    .route(web::get().to(register::register))
-                    .route(web::post().to(register::process_registration)),
-            )
-            .route("/logout", web::get().to(logout::process_logout))
-            .service(
-                web::resource("/user/{username}").route(web::get().to(user_profile::user_profile)),
-            )
-            .route("/home", web::get().to(home::home))
-            .route("/account", web::get().to(account::account))
-            .route(
-                "/spotify-connect",
-                web::get().to(spotify_connect::spotify_connect),
-            )
+            .service(index::index)
+            .service(login::login)
+            .service(login::process_login)
+            .service(register::register)
+            .service(register::process_registration)
+            .service(logout::process_logout)
+            .service(user_profile::user_profile)
+            .service(home::home)
+            .service(account::account)
+            .service(spotify_connect::spotify_connect)
     })
-    .bind("127.0.0.1:8000")?
+    .bind(("127.0.0.1", 8000))?
     .run()
     .await
 }

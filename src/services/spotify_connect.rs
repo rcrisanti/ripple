@@ -1,21 +1,21 @@
 use actix_identity::Identity;
 use actix_web::{
+    get,
     web::{self, Data},
     HttpResponse,
 };
-use diesel::prelude::*;
 use rspotify::prelude::*;
 use serde::Deserialize;
 use tera::{Context, Tera};
 
-use crate::models::NewSpotifyToken;
-use crate::{errors::RippleError, schema, spotify, Pool};
+use crate::{errors::RippleError, spotify, Pool};
 
 #[derive(Debug, Deserialize)]
 pub struct SpotifyConnectRequest {
     code: String,
 }
 
+#[get("/spotify-connect")]
 pub async fn spotify_connect(
     tera: web::Data<Tera>,
     web::Query(connect_request): web::Query<SpotifyConnectRequest>,
@@ -30,28 +30,9 @@ pub async fn spotify_connect(
         data.insert("username", &my_username);
 
         let mut spotify = spotify::init_spotify();
+        log::debug!("initialized spotify auth");
 
         if spotify.request_token(&connect_request.code).await.is_ok() {
-            // use schema::spotify_tokens::dsl::{spotify_tokens, username};
-
-            // let token = spotify
-            //     .get_token()
-            //     .lock()
-            //     .await
-            //     .expect("could not obtain token")
-            //     .clone()
-            //     .expect("token is None");
-            // let new_spotify_token = NewSpotifyToken::from_token(my_username, token);
-
-            // let connection = pool.get()?;
-
-            // diesel::insert_into(spotify_tokens)
-            //     .values(&new_spotify_token)
-            //     .on_conflict(username)
-            //     .do_update()
-            //     .set(&new_spotify_token)
-            //     .execute(&connection)?;
-
             let connection = pool.get()?;
             spotify::save_token_to_db(&spotify, connection, my_username).await?;
 
